@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCORM Package Development & Testing Studio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/player.css">
+</head>
+<body class="bg-light">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark bg-dark px-4 py-3 shadow-sm" style="background: linear-gradient(90deg, #0A192F 0%, #0A4B5C 100%) !important;">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="/">
+                <i class="fa-solid fa-cube text-warning fs-4"></i>
+                <span>SCORM Implementation Studio</span>
+                <span class="badge bg-info text-dark rounded-pill ms-2" style="font-size:0.75rem;">SCORM 1.2 & 2004 RTE</span>
+            </a>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-white-50 small"><i class="fa-solid fa-circle-check text-success me-1"></i> Standalone Testbed</span>
+                <a href="https://scorm.com/scorm-explained/" target="_blank" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                    <i class="fa-solid fa-book-open me-1"></i> SCORM Docs
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <!-- Banner -->
+        <div class="card border-0 shadow-sm rounded-4 mb-5 overflow-hidden text-white" style="background: linear-gradient(135deg, #0A4B5C 0%, #062b35 100%);">
+            <div class="card-body p-4 p-md-5">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <span class="badge bg-warning text-dark px-3 py-1 rounded-pill mb-3 fw-bold">STANDALONE LMS RUNTIME HARNESS</span>
+                        <h2 class="fw-bold display-6 mb-3">SCORM Package Development & Testing</h2>
+                        <p class="lead text-white-50 mb-4" style="font-size: 1.05rem;">
+                            Test and debug your interactive SCORM courseware (Articulate Rise 360, Storyline, Adobe Captivate, custom HTML5) independently from the main LMS. Inspect <code>imsmanifest.xml</code>, verify asset routing, and observe real-time SCORM 1.2 & 2004 CMI telemetry.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-white text-dark py-2 px-3 border"><i class="fa-solid fa-check text-success me-1"></i> SCORM 1.2 (window.API)</span>
+                            <span class="badge bg-white text-dark py-2 px-3 border"><i class="fa-solid fa-check text-success me-1"></i> SCORM 2004 (window.API_1484_11)</span>
+                            <span class="badge bg-white text-dark py-2 px-3 border"><i class="fa-solid fa-check text-success me-1"></i> Rise 360 Auto-Detection</span>
+                            <span class="badge bg-white text-dark py-2 px-3 border"><i class="fa-solid fa-check text-success me-1"></i> Live CMI Inspector</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-center mt-4 mt-lg-0">
+                        <div class="p-4 rounded-4 bg-white bg-opacity-10 backdrop-blur border border-white border-opacity-25">
+                            <i class="fa-solid fa-graduation-cap fa-4x text-warning mb-3"></i>
+                            <h5 class="fw-bold text-white mb-1">Pre-loaded Test Package</h5>
+                            <p class="small text-white-50 mb-3">Workplace Safety Training (SCORM 1.2/2004 with Quiz)</p>
+                            <a href="/player/sample_safety" class="btn btn-warning fw-bold text-dark w-100 rounded-pill shadow-sm">
+                                <i class="fa-solid fa-play me-1"></i> Launch Test Package
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area: Upload & Package List -->
+        <div class="row g-4">
+            <!-- Upload Column -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-header bg-white border-bottom py-3 px-4">
+                        <h5 class="fw-bold mb-0 text-navy"><i class="fa-solid fa-cloud-arrow-up text-primary me-2"></i>Upload SCORM Package</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form action="/upload" method="POST" enctype="multipart/form-data" id="scorm-upload-form">
+                            <div class="drag-drop-zone mb-3" id="drop-area">
+                                <i class="fa-solid fa-file-zipper fa-3x text-primary mb-3"></i>
+                                <h6 class="fw-bold mb-1">Drag and drop SCORM (.zip) file here</h6>
+                                <p class="small text-muted mb-3">Must contain <code>imsmanifest.xml</code></p>
+                                <label for="package-file-input" class="btn btn-outline-primary btn-sm rounded-pill px-4">Browse Files</label>
+                                <input type="file" name="scorm_file" id="package-file-input" accept=".zip" class="d-none" required>
+                                <div id="selected-file-name" class="mt-2 small text-success fw-bold d-none"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted">Package Identifier (Optional)</label>
+                                <input type="text" name="package_id" class="form-control form-control-sm" placeholder="e.g. safety_training_v1">
+                                <div class="form-text small">Leave blank to auto-generate from file name.</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold py-2" id="btn-submit-upload">
+                                <i class="fa-solid fa-file-export me-1"></i> Unzip, Parse & Deploy Package
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Packages List Column -->
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0 text-navy"><i class="fa-solid fa-box-archive text-warning me-2"></i>Available SCORM Packages</h5>
+                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3">{{ packages|length }} Package{{ 's' if packages|length != 1 else '' }}</span>
+                    </div>
+                    <div class="card-body p-4">
+                        {% if packages %}
+                            <div class="d-flex flex-column gap-3">
+                                {% for pkg in packages %}
+                                <div class="p-3 border rounded-3 bg-white shadow-2xs hover-shadow transition">
+                                    <div class="d-flex align-items-start justify-content-between">
+                                        <div>
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <h6 class="fw-bold mb-0 text-dark">{{ pkg.title or pkg.id }}</h6>
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill font-monospace" style="font-size:0.75rem;">
+                                                    {{ pkg.schema }} {{ pkg.schema_version }}
+                                                </span>
+                                                {% if pkg.is_rise_360 %}
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size:0.7rem;">
+                                                    Articulate Rise 360
+                                                </span>
+                                                {% endif %}
+                                            </div>
+                                            <p class="small text-muted mb-2 font-monospace">
+                                                <i class="fa-regular fa-folder-open me-1"></i> ID: <strong>{{ pkg.id }}</strong>
+                                                <span class="mx-2">•</span>
+                                                <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Launch: <code>{{ pkg.launch_href }}</code>
+                                            </p>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <a href="/player/{{ pkg.id }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
+                                                <i class="fa-solid fa-play me-1"></i> Test Player
+                                            </a>
+                                            <a href="/manifest/{{ pkg.id }}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-2" title="Inspect Manifest JSON">
+                                                <i class="fa-solid fa-code"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-folder-open fa-3x mb-3 text-secondary"></i>
+                                <h6 class="fw-bold">No packages deployed yet</h6>
+                                <p class="small">Upload a SCORM zip file above or click the test package to begin.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Testing & Porting Checklist Guide -->
+        <div class="card border-0 shadow-sm rounded-4 mt-5">
+            <div class="card-header bg-white border-bottom py-3 px-4">
+                <h5 class="fw-bold mb-0 text-navy"><i class="fa-solid fa-list-check text-success me-2"></i>SCORM Independent Testing & Implementation Guide</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <h6 class="fw-bold text-dark"><i class="fa-solid fa-1 text-primary me-2"></i>1. Verify Manifest Parsing</h6>
+                            <p class="small text-muted mb-0">
+                                Checks <code>imsmanifest.xml</code> extraction, handles arbitrary XML namespaces, and finds the entry point (e.g. <code>scormcontent/index.html</code>, <code>index.html</code>, or <code>story.html</code>).
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <h6 class="fw-bold text-dark"><i class="fa-solid fa-2 text-primary me-2"></i>2. Test Runtime Handshake</h6>
+                            <p class="small text-muted mb-0">
+                                Modules call <code>findAPI(window)</code> and access <code>LMSInitialize</code> / <code>Initialize</code>. Observe live logs in the Live CMI Inspector.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <h6 class="fw-bold text-dark"><i class="fa-solid fa-3 text-primary me-2"></i>3. Telemetry & Porting</h6>
+                            <p class="small text-muted mb-0">
+                                Check that quiz scores and completion status flow to <code>/api/telemetry</code>. Use the included <code>dotnet_reference/</code> to implement this in C# for AdityaLMS!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Drag and drop UI handling
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('package-file-input');
+        const fileNameDisplay = document.getElementById('selected-file-name');
+
+        if (dropArea && fileInput) {
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    dropArea.classList.add('dragover');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    dropArea.classList.remove('dragover');
+                }, false);
+            });
+
+            dropArea.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length) {
+                    fileInput.files = files;
+                    showFileName(files[0].name);
+                }
+            });
+
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length) {
+                    showFileName(fileInput.files[0].name);
+                }
+            });
+
+            function showFileName(name) {
+                fileNameDisplay.textContent = 'Selected: ' + name;
+                fileNameDisplay.classList.remove('d-none');
+            }
+        }
+    </script>
+</body>
+</html>
+

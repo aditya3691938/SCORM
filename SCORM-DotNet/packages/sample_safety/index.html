@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Introduction to Workplace Safety</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .header {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .header h1 { font-size: 16px; font-weight: 600; color: #a8e6cf; }
+  .progress-bar-wrap {
+    width: 200px; height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px; overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #a8e6cf, #56ab2f);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+  .slide-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 24px;
+  }
+  .slide {
+    display: none;
+    max-width: 700px;
+    width: 100%;
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+  }
+  .slide.active { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  .slide h2 { font-size: 28px; font-weight: 700; margin-bottom: 16px; color: #fff; }
+  .slide p { font-size: 16px; line-height: 1.7; margin-bottom: 20px; color: #bbb; }
+  .slide .icon { font-size: 60px; margin-bottom: 20px; }
+  .card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 24px;
+    margin: 12px 0;
+    text-align: left;
+  }
+  .card h3 { color: #a8e6cf; margin-bottom: 8px; }
+  .quiz-option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 14px 20px;
+    margin: 8px 0;
+    background: rgba(255,255,255,0.06);
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    color: #ddd;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .quiz-option:hover { border-color: #a8e6cf; background: rgba(168,230,207,0.08); }
+  .quiz-option.correct { border-color: #56ab2f; background: rgba(86,171,47,0.15); color: #a8e6cf; }
+  .quiz-option.wrong { border-color: #e74c3c; background: rgba(231,76,60,0.1); color: #e74c3c; }
+  .quiz-option.disabled { pointer-events: none; opacity: 0.7; }
+  .nav-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    padding: 20px;
+    background: rgba(255,255,255,0.03);
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .btn {
+    padding: 12px 32px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .btn-prev { background: rgba(255,255,255,0.1); color: #ccc; }
+  .btn-prev:hover { background: rgba(255,255,255,0.2); }
+  .btn-next { background: linear-gradient(135deg, #56ab2f, #a8e6cf); color: #0f0c29; }
+  .btn-next:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(86,171,47,0.3); }
+  .btn-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+  .result-box {
+    padding: 24px; border-radius: 16px;
+    margin-top: 20px;
+  }
+  .result-pass { background: rgba(86,171,47,0.15); border: 1px solid #56ab2f; }
+  .result-fail { background: rgba(231,76,60,0.12); border: 1px solid #e74c3c; }
+  .slide-counter { font-size: 13px; color: #888; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>Workplace Safety Training</h1>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="slide-counter" id="slideCounter">1 / 5</span>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar"></div></div>
+    </div>
+  </div>
+
+  <div class="slide-container">
+    <!-- Slide 1: Welcome -->
+    <div class="slide active" id="slide-0">
+      <div class="icon">&#127970;</div>
+      <h2>Welcome to Workplace Safety</h2>
+      <p>This course covers the essential principles of maintaining a safe working environment. You will learn about hazard identification, emergency procedures, and personal protective equipment.</p>
+      <div class="card">
+        <h3>Course Objectives</h3>
+        <p>- Identify common workplace hazards<br>
+           - Understand emergency evacuation procedures<br>
+           - Know when and how to use PPE<br>
+           - Pass the knowledge check with 67% or higher</p>
+      </div>
+    </div>
+
+    <!-- Slide 2: Hazard Identification -->
+    <div class="slide" id="slide-1">
+      <div class="icon">&#9888;&#65039;</div>
+      <h2>Hazard Identification</h2>
+      <p>Hazards can be physical, chemical, biological, or ergonomic. Recognizing them is the first step to prevention.</p>
+      <div class="card">
+        <h3>Common Hazards</h3>
+        <p><strong>Physical:</strong> Wet floors, exposed wiring, falling objects<br>
+           <strong>Chemical:</strong> Unlabeled containers, fume exposure<br>
+           <strong>Ergonomic:</strong> Poor posture, repetitive movements<br>
+           <strong>Biological:</strong> Mold, unsanitary conditions</p>
+      </div>
+      <div class="card">
+        <h3>Key Principle</h3>
+        <p>Always report hazards immediately - even if they seem minor. Early reporting prevents accidents.</p>
+      </div>
+    </div>
+
+    <!-- Slide 3: Emergency Procedures -->
+    <div class="slide" id="slide-2">
+      <div class="icon">&#128680;</div>
+      <h2>Emergency Procedures</h2>
+      <p>Every employee must know the emergency evacuation routes and assembly points for their building.</p>
+      <div class="card">
+        <h3>Evacuation Steps</h3>
+        <p>1. Stay calm and alert others nearby<br>
+           2. Follow the marked evacuation route<br>
+           3. Do NOT use elevators<br>
+           4. Proceed to the designated assembly point<br>
+           5. Report to your floor warden for headcount</p>
+      </div>
+      <div class="card">
+        <h3>Fire Extinguisher: P.A.S.S.</h3>
+        <p><strong>P</strong>ull the pin - <strong>A</strong>im at the base - <strong>S</strong>queeze the handle - <strong>S</strong>weep side to side</p>
+      </div>
+    </div>
+
+    <!-- Slide 4: Quiz -->
+    <div class="slide" id="slide-3">
+      <div class="icon">&#128221;</div>
+      <h2>Knowledge Check</h2>
+      <p>Answer the following 3 questions to complete the course. You need at least 2 correct answers (67%) to pass.</p>
+
+      <div class="card" id="q1-card">
+        <h3>Question 1: What should you do first when you discover a hazard?</h3>
+        <button class="quiz-option" onclick="answer(1, this, 'B')">A. Ignore it if it is minor</button>
+        <button class="quiz-option" onclick="answer(1, this, 'B')">B. Report it immediately</button>
+        <button class="quiz-option" onclick="answer(1, this, 'B')">C. Fix it yourself without telling anyone</button>
+      </div>
+
+      <div class="card" id="q2-card">
+        <h3>Question 2: During a fire evacuation, you should:</h3>
+        <button class="quiz-option" onclick="answer(2, this, 'A')">A. Use the stairs, not the elevator</button>
+        <button class="quiz-option" onclick="answer(2, this, 'A')">B. Take the elevator for speed</button>
+        <button class="quiz-option" onclick="answer(2, this, 'A')">C. Return to your desk for belongings</button>
+      </div>
+
+      <div class="card" id="q3-card">
+        <h3>Question 3: What does the A in P.A.S.S. stand for?</h3>
+        <button class="quiz-option" onclick="answer(3, this, 'B')">A. Activate the alarm</button>
+        <button class="quiz-option" onclick="answer(3, this, 'B')">B. Aim at the base of the fire</button>
+        <button class="quiz-option" onclick="answer(3, this, 'B')">C. Ask for help</button>
+      </div>
+    </div>
+
+    <!-- Slide 5: Results -->
+    <div class="slide" id="slide-4">
+      <div class="icon" id="resultIcon">&#8987;</div>
+      <h2 id="resultTitle">Your Results</h2>
+      <p id="resultText">Please complete the quiz first.</p>
+      <div id="resultBox"></div>
+    </div>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="btn btn-prev" id="btnPrev" onclick="navigate(-1)" style="display:none;">Previous</button>
+    <button class="btn btn-next" id="btnNext" onclick="navigate(1)">Next</button>
+  </div>
+
+<script>
+  var scormAPI = null;
+  var scormVersion = '1.2';
+
+  function findAPI(win) {
+    var attempts = 0;
+    while (win && attempts < 10) {
+      if (win.API) return { api: win.API, version: '1.2' };
+      if (win.API_1484_11) return { api: win.API_1484_11, version: '2004' };
+      if (win == win.parent) break;
+      win = win.parent;
+      attempts++;
+    }
+    return null;
+  }
+
+  function scormInit() {
+    var result = findAPI(window) || findAPI(window.opener);
+    if (result) {
+      scormAPI = result.api;
+      scormVersion = result.version;
+      if (scormVersion === '1.2') {
+        scormAPI.LMSInitialize('');
+        scormAPI.LMSSetValue('cmi.core.lesson_status', 'incomplete');
+      } else {
+        scormAPI.Initialize('');
+        scormAPI.SetValue('cmi.completion_status', 'incomplete');
+      }
+      console.log('SCORM ' + scormVersion + ' initialized');
+    } else {
+      console.warn('No SCORM API found - running in standalone mode');
+    }
+  }
+
+  function scormSetComplete(score, passed) {
+    if (!scormAPI) return;
+    if (scormVersion === '1.2') {
+      scormAPI.LMSSetValue('cmi.core.score.raw', String(score));
+      scormAPI.LMSSetValue('cmi.core.score.max', '100');
+      scormAPI.LMSSetValue('cmi.core.score.min', '0');
+      scormAPI.LMSSetValue('cmi.core.lesson_status', passed ? 'passed' : 'failed');
+      scormAPI.LMSCommit('');
+      scormAPI.LMSFinish('');
+    } else {
+      scormAPI.SetValue('cmi.score.raw', String(score));
+      scormAPI.SetValue('cmi.score.max', '100');
+      scormAPI.SetValue('cmi.score.min', '0');
+      scormAPI.SetValue('cmi.completion_status', 'completed');
+      scormAPI.SetValue('cmi.success_status', passed ? 'passed' : 'failed');
+      scormAPI.Commit('');
+      scormAPI.Terminate('');
+    }
+  }
+
+  var currentSlide = 0;
+  var totalSlides = 5;
+  var answers = {};
+  var quizComplete = false;
+
+  function showSlide(n) {
+    document.querySelectorAll('.slide').forEach(function(s) { s.classList.remove('active'); });
+    var el = document.getElementById('slide-' + n);
+    if (el) {
+      void el.offsetWidth;
+      el.classList.add('active');
+    }
+    document.getElementById('slideCounter').textContent = (n + 1) + ' / ' + totalSlides;
+    document.getElementById('progressBar').style.width = ((n + 1) / totalSlides * 100) + '%';
+    document.getElementById('btnPrev').style.display = n === 0 ? 'none' : 'inline-block';
+
+    if (n === totalSlides - 1) {
+      document.getElementById('btnNext').style.display = 'none';
+      if (quizComplete) showResults();
+    } else if (n === 3) {
+      document.getElementById('btnNext').disabled = !quizComplete;
+      document.getElementById('btnNext').textContent = quizComplete ? 'See Results' : 'Answer All Questions';
+      document.getElementById('btnNext').style.display = 'inline-block';
+    } else {
+      document.getElementById('btnNext').disabled = false;
+      document.getElementById('btnNext').textContent = 'Next';
+      document.getElementById('btnNext').style.display = 'inline-block';
+    }
+  }
+
+  function navigate(dir) {
+    var next = currentSlide + dir;
+    if (next < 0 || next >= totalSlides) return;
+    currentSlide = next;
+    showSlide(currentSlide);
+  }
+
+  function answer(qNum, btn, correctLetter) {
+    if (answers[qNum] !== undefined) return;
+    var card = document.getElementById('q' + qNum + '-card');
+    var options = card.querySelectorAll('.quiz-option');
+    var selectedLetter = btn.textContent.trim().charAt(0);
+    var isCorrect = selectedLetter === correctLetter;
+    answers[qNum] = isCorrect;
+    options.forEach(function(opt) {
+      opt.classList.add('disabled');
+      var optLetter = opt.textContent.trim().charAt(0);
+      if (optLetter === correctLetter) {
+        opt.classList.add('correct');
+      } else if (opt === btn && !isCorrect) {
+        opt.classList.add('wrong');
+      }
+    });
+    if (Object.keys(answers).length === 3) {
+      quizComplete = true;
+      document.getElementById('btnNext').disabled = false;
+      document.getElementById('btnNext').textContent = 'See Results';
+    }
+  }
+
+  function showResults() {
+    var correct = 0;
+    for (var k in answers) { if (answers[k]) correct++; }
+    var score = Math.round((correct / 3) * 100);
+    var passed = correct >= 2;
+
+    document.getElementById('resultIcon').textContent = passed ? 'Pass!' : 'Fail';
+    document.getElementById('resultTitle').textContent = passed ? 'Congratulations!' : 'Not Quite...';
+    document.getElementById('resultText').textContent = 'You scored ' + correct + '/3 (' + score + '%)';
+
+    var box = document.getElementById('resultBox');
+    if (passed) {
+      box.className = 'result-box result-pass';
+      box.innerHTML = '<h3 style="color:#a8e6cf;margin-bottom:8px;">Course Completed!</h3><p>You have successfully passed the Workplace Safety Training. Your score has been recorded in the LMS.</p>';
+    } else {
+      box.className = 'result-box result-fail';
+      box.innerHTML = '<h3 style="color:#e74c3c;margin-bottom:8px;">Score Below Passing</h3><p>You need at least 2 correct answers (67%) to pass. Please review the material and try again.</p>';
+    }
+    scormSetComplete(score, passed);
+  }
+
+  scormInit();
+  showSlide(0);
+</script>
+</body>
+</html>

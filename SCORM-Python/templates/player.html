@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCORM Test Player - {{ manifest.title or package_id }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/player.css">
+    
+    <!-- Core SCORM Runtime APIs Injected at Top Level -->
+    <script src="/static/js/scorm_api_12.js"></script>
+    <script src="/static/js/scorm_api_2004.js"></script>
+    <script src="/static/js/debugger.js"></script>
+
+    <script>
+        // Universal Window Binding for SCORM 1.2 & SCORM 2004
+        (function() {
+            var packageId = "{{ package_id }}";
+            var initialState = {{ initial_state|tojson|safe }};
+
+            window.scormDebugger = null;
+
+            // Initialize API Adapters
+            window.scorm12Instance = new Scorm12API({
+                packageId: packageId,
+                studentId: "LRN-77402",
+                studentName: "Aditya, Learner",
+                telemetryEndpoint: "/api/telemetry/" + packageId,
+                initialState: initialState,
+                onEvent: function(eventData) {
+                    if (window.scormDebugger) window.scormDebugger.handleEvent(eventData);
+                },
+                onCommit: function(res) {
+                    console.log("[SCORM 1.2] Commit response:", res);
+                }
+            });
+
+            window.scorm2004Instance = new Scorm2004API({
+                packageId: packageId,
+                studentId: "LRN-77402",
+                studentName: "Aditya, Learner",
+                telemetryEndpoint: "/api/telemetry/" + packageId,
+                initialState: initialState,
+                onEvent: function(eventData) {
+                    if (window.scormDebugger) window.scormDebugger.handleEvent(eventData);
+                },
+                onCommit: function(res) {
+                    console.log("[SCORM 2004] Commit response:", res);
+                }
+            });
+
+            // Standard SCORM Objects
+            window.API = window.scorm12Instance;
+            window.API_1484_11 = window.scorm2004Instance;
+
+            // Propagate to parent & top frames for nested iframe discovery
+            try {
+                if (window.parent && window.parent !== window) {
+                    window.parent.API = window.scorm12Instance;
+                    window.parent.API_1484_11 = window.scorm2004Instance;
+                }
+                if (window.top && window.top !== window) {
+                    window.top.API = window.scorm12Instance;
+                    window.top.API_1484_11 = window.scorm2004Instance;
+                }
+            } catch (err) {
+                console.warn("[SCORM] Cross-origin frame attachment notice:", err);
+            }
+        })();
+    </script>
+</head>
+<body class="bg-light">
+
+    <!-- Top Navigation Header -->
+    <nav class="navbar navbar-dark bg-dark px-4 py-2 shadow-sm" style="background: linear-gradient(90deg, #0A192F 0%, #0A4B5C 100%) !important;">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <a href="/" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Back to Studio
+                </a>
+                <div class="vr bg-white opacity-25"></div>
+                <div>
+                    <h6 class="text-white mb-0 fw-bold">{{ manifest.title or package_id }}</h6>
+                    <small class="text-white-50 font-monospace">Package: {{ package_id }} &bull; Launch: {{ manifest.launch_href }}</small>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-white-50 small">Completion:</span>
+                    <span id="scorm-status-badge" class="badge px-3 py-2 fs-6 bg-secondary">NOT ATTEMPTED</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-white-50 small">Score:</span>
+                    <span id="scorm-score-badge" class="badge px-3 py-2 fs-6 bg-dark text-warning border border-warning">N/A</span>
+                </div>
+                <button id="btn-reload-scorm-frame" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold">
+                    <i class="fa-solid fa-rotate-right me-1"></i> Reload
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Player & Debugger Viewport -->
+    <div class="container-fluid px-4 py-3">
+        <div class="row g-3">
+            <!-- Left: SCORM Iframe Viewport -->
+            <div class="col-lg-8">
+                <div class="scorm-viewport-wrapper">
+                    <!-- Loading Overlay -->
+                    <div id="scorm-loader-overlay" class="scorm-loader-overlay">
+                        <div class="spinner-grow text-warning mb-3" role="status" style="width: 3.5rem; height: 3.5rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5 class="fw-bold text-white mb-1 letter-spacing-1 font-monospace">
+                            <i class="fa-solid fa-cube text-warning me-2 animate-pulse"></i> INITIALIZING SCORM RUNTIME...
+                        </h5>
+                        <p class="small text-white-50 mb-3">Connecting window.API & window.API_1484_11 stubs...</p>
+                        <div class="progress w-50" style="height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" style="width: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- SCORM Content Frame -->
+                    <div class="scorm-iframe-container">
+                        <iframe id="scorm-content-frame" src="{{ launch_url }}" allowfullscreen onload="dismissScormLoader()"></iframe>
+                    </div>
+
+                    <!-- Bottom Bar -->
+                    <div class="p-3 bg-white border-top d-flex justify-content-between align-items-center">
+                        <div class="small text-muted font-monospace">
+                            <i class="fa-solid fa-link text-primary me-1"></i> Running: <code>{{ launch_url }}</code>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="toggleFullScreen()">
+                                <i class="fa-solid fa-expand me-1"></i> Fullscreen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Live SCORM RTE Debugger & CMI Inspector -->
+            <div class="col-lg-4">
+                <div class="scorm-debug-panel p-3">
+                    <div class="d-flex justify-content-between align-items-center pb-2 border-bottom mb-2">
+                        <h6 class="fw-bold mb-0 text-navy d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-terminal text-primary"></i> Live RTE Debugger
+                            <span id="scorm-call-counter" class="badge bg-secondary-subtle text-secondary font-monospace" style="font-size:0.75rem;">0 calls</span>
+                        </h6>
+                        <button id="btn-clear-scorm-logs" class="btn btn-outline-danger btn-xs py-0 px-2 rounded" title="Clear Event Log" style="font-size:0.75rem;">
+                            <i class="fa-solid fa-trash-can me-1"></i> Clear
+                        </button>
+                    </div>
+
+                    <!-- Log Filters -->
+                    <div class="d-flex gap-1 mb-2">
+                        <button class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0 active" data-scorm-filter="all" style="font-size:0.75rem;">All</button>
+                        <button class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0" data-scorm-filter="set" style="font-size:0.75rem;">SetValue</button>
+                        <button class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0" data-scorm-filter="get" style="font-size:0.75rem;">GetValue</button>
+                        <button class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0" data-scorm-filter="commit" style="font-size:0.75rem;">Commit</button>
+                        <button class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0" data-scorm-filter="status" style="font-size:0.75rem;">Scores/Status</button>
+                    </div>
+
+                    <!-- Live Log Event List -->
+                    <div id="scorm-log-list" class="scorm-log-list mb-3">
+                        <div class="text-muted text-center py-4 small">Waiting for SCORM API initialization...</div>
+                    </div>
+
+                    <!-- Tabs: CMI State & Simulator Controls -->
+                    <ul class="nav nav-tabs nav-fill mb-2" id="debugTabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active py-1 small fw-bold" id="cmi-tab" data-bs-toggle="tab" data-bs-target="#cmi-content">CMI Data Model</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link py-1 small fw-bold" id="sim-tab" data-bs-toggle="tab" data-bs-target="#sim-content">LMS Simulator</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content flex-grow-1 overflow-auto">
+                        <!-- CMI State View -->
+                        <div class="tab-pane fade show active" id="cmi-content">
+                            <div class="cmi-table-scroll border rounded">
+                                <table class="table table-sm table-striped mb-0">
+                                    <thead class="table-light sticky-top">
+                                        <tr style="font-size:0.75rem;">
+                                            <th>Element</th>
+                                            <th>Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cmi-state-tbody">
+                                        <tr><td colspan="2" class="text-muted text-center small py-3">No CMI data initialized</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-2 text-end">
+                                <button id="btn-export-cmi-json" class="btn btn-outline-primary btn-xs py-1 px-3 rounded-pill" style="font-size:0.75rem;">
+                                    <i class="fa-solid fa-download me-1"></i> Export State JSON
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- LMS Simulator Controls -->
+                        <div class="tab-pane fade" id="sim-content">
+                            <div class="p-2 bg-light rounded border">
+                                <h6 class="small fw-bold text-dark mb-2">Simulate Learner / SCO Actions</h6>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-sm btn-outline-success text-start" onclick="simulateLmsAction('passed', 100)">
+                                        <i class="fa-solid fa-circle-check text-success me-2"></i> Simulate Passed (100%)
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary text-start" onclick="simulateLmsAction('completed', 85)">
+                                        <i class="fa-solid fa-award text-primary me-2"></i> Simulate Completed (85%)
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger text-start" onclick="simulateLmsAction('failed', 45)">
+                                        <i class="fa-solid fa-circle-xmark text-danger me-2"></i> Simulate Failed (45%)
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary text-start" onclick="resetScormState()">
+                                        <i class="fa-solid fa-arrows-rotate text-secondary me-2"></i> Reset Attempt / CMI
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Initialize Live Debugger
+        document.addEventListener('DOMContentLoaded', function() {
+            window.scormDebugger = new ScormDebugger({
+                logContainerId: 'scorm-log-list',
+                cmiTableBodyId: 'cmi-state-tbody',
+                statusBadgeId: 'scorm-status-badge',
+                scoreBadgeId: 'scorm-score-badge',
+                callCounterId: 'scorm-call-counter'
+            });
+
+            // Initial UI update from preloaded state
+            if (window.scorm12Instance && window.scorm12Instance.cmi) {
+                window.scormDebugger.cmiState = window.scorm12Instance.cmi;
+                window.scormDebugger.updateCmiUI();
+            }
+
+            // Reload frame button
+            document.getElementById('btn-reload-scorm-frame').addEventListener('click', function() {
+                var frame = document.getElementById('scorm-content-frame');
+                var loader = document.getElementById('scorm-loader-overlay');
+                if (loader) {
+                    loader.style.opacity = '1';
+                    loader.style.visibility = 'visible';
+                }
+                frame.src = frame.src;
+            });
+        });
+
+        function dismissScormLoader() {
+            var loader = document.getElementById('scorm-loader-overlay');
+            if (loader) {
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+            }
+        }
+
+        function toggleFullScreen() {
+            var elem = document.getElementById('scorm-content-frame');
+            if (!document.fullscreenElement) {
+                if (elem.requestFullscreen) elem.requestFullscreen();
+                else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+                else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        function simulateLmsAction(status, score) {
+            // Apply to 1.2
+            if (window.scorm12Instance) {
+                window.scorm12Instance.LMSSetValue('cmi.core.lesson_status', status);
+                window.scorm12Instance.LMSSetValue('cmi.core.score.raw', String(score));
+                window.scorm12Instance.LMSCommit('');
+            }
+            // Apply to 2004
+            if (window.scorm2004Instance) {
+                window.scorm2004Instance.SetValue('cmi.completion_status', 'completed');
+                window.scorm2004Instance.SetValue('cmi.success_status', status === 'failed' ? 'failed' : 'passed');
+                window.scorm2004Instance.SetValue('cmi.score.raw', String(score));
+                window.scorm2004Instance.SetValue('cmi.score.scaled', String(score / 100));
+                window.scorm2004Instance.Commit('');
+            }
+        }
+
+        function resetScormState() {
+            if (confirm("Reset current SCORM CMI attempt and reload?")) {
+                fetch("/api/reset/{{ package_id }}", { method: 'POST' })
+                .then(r => r.json())
+                .then(() => {
+                    window.location.reload();
+                });
+            }
+        }
+
+        setTimeout(dismissScormLoader, 8000);
+    </script>
+</body>
+</html>
+

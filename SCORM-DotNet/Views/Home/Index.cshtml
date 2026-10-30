@@ -1,0 +1,253 @@
+@model List<SCORM_Implementation.Models.ScormPackageViewModel>
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCORM Package Studio (.NET 8 & C#)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/player.css">
+</head>
+<body class="bg-light">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark bg-dark px-4 py-3 shadow-sm" style="background: linear-gradient(90deg, #0A192F 0%, #0A4B5C 100%) !important;">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="/">
+                <i class="fa-solid fa-cube text-warning fs-4"></i>
+                <span>SCORM Implementation Studio</span>
+                <span class="badge bg-info text-dark rounded-pill ms-2" style="font-size:0.75rem;">.NET 8 & C# Edition</span>
+            </a>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-white-50 small"><i class="fa-brands fa-microsoft text-info me-1"></i> ASP.NET Core MVC</span>
+                <a href="https://scorm.com/scorm-explained/" target="_blank" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                    <i class="fa-solid fa-book-open me-1"></i> SCORM Docs
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4" role="alert">
+                <i class="fa-solid fa-circle-check me-2"></i> @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4" role="alert">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i> @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <!-- Hero Card -->
+        <div class="card border-0 shadow-sm rounded-4 mb-5 overflow-hidden text-white" style="background: linear-gradient(135deg, #0A4B5C 0%, #062b35 100%);">
+            <div class="card-body p-4 p-md-5">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <span class="badge bg-warning text-dark px-3 py-1 rounded-pill mb-3 fw-bold">STANDALONE .NET RUNTIME HARNESS</span>
+                        <h2 class="fw-bold display-6 mb-3">SCORM Package Development & Testing</h2>
+                        <p class="lead text-white-50 mb-4" style="font-size: 1.05rem;">
+                            Pure C# and ASP.NET Core 8 standalone implementation. Test and debug interactive SCORM courseware (Articulate Rise 360, Storyline, Adobe Captivate, custom HTML5) with full CMI telemetry and manifest verification.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-white text-dark py-2 px-3 border"><i class="fa-solid fa-check text-success me-1"></i> Pure C# & .NET 8</span>
+                            <span class="badge bg-white text-dark py-2 px-3 border"><i class="fa-solid fa-check text-success me-1"></i> SCORM 1.2 (window.API)</span>
+                            <span class="badge bg-white text-dark py-2 px-3 border"><i class="fa-solid fa-check text-success me-1"></i> SCORM 2004 (window.API_1484_11)</span>
+                            <span class="badge bg-white text-dark py-2 px-3 border"><i class="fa-solid fa-check text-success me-1"></i> Rise 360 Auto-Detection</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-center mt-4 mt-lg-0">
+                        <div class="p-4 rounded-4 bg-white bg-opacity-10 backdrop-blur border border-white border-opacity-25">
+                            <i class="fa-solid fa-graduation-cap fa-4x text-warning mb-3"></i>
+                            <h5 class="fw-bold text-white mb-1">Pre-loaded Test Package</h5>
+                            <p class="small text-white-50 mb-3">Workplace Safety Training (SCORM 1.2/2004 with Quiz)</p>
+                            <a href="/player/sample_safety" class="btn btn-warning fw-bold text-dark w-100 rounded-pill shadow-sm">
+                                <i class="fa-solid fa-play me-1"></i> Launch Test Package
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area: Upload & Package List -->
+        <div class="row g-4">
+            <!-- Upload Column -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-header bg-white border-bottom py-3 px-4">
+                        <h5 class="fw-bold mb-0 text-navy"><i class="fa-solid fa-cloud-arrow-up text-primary me-2"></i>Upload SCORM Package</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form action="/upload" method="POST" enctype="multipart/form-data" id="scorm-upload-form">
+                            <div class="drag-drop-zone mb-3" id="drop-area">
+                                <i class="fa-solid fa-file-zipper fa-3x text-primary mb-3"></i>
+                                <h6 class="fw-bold mb-1">Drag and drop SCORM (.zip) file here</h6>
+                                <p class="small text-muted mb-3">Must contain <code>imsmanifest.xml</code></p>
+                                <label for="package-file-input" class="btn btn-outline-primary btn-sm rounded-pill px-4">Browse Files</label>
+                                <input type="file" name="scorm_file" id="package-file-input" accept=".zip" class="d-none" required>
+                                <div id="selected-file-name" class="mt-2 small text-success fw-bold d-none"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted">Package Identifier (Optional)</label>
+                                <input type="text" name="package_id" class="form-control form-control-sm" placeholder="e.g. safety_training_v1">
+                                <div class="form-text small">Leave blank to auto-generate from file name.</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold py-2" id="btn-submit-upload">
+                                <i class="fa-solid fa-file-export me-1"></i> Unzip, Parse & Deploy Package
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Packages List Column -->
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0 text-navy"><i class="fa-solid fa-box-archive text-warning me-2"></i>Available SCORM Packages</h5>
+                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3">@Model.Count Package@(Model.Count != 1 ? "s" : "")</span>
+                    </div>
+                    <div class="card-body p-4">
+                        @if (Model != null && Model.Count > 0)
+                        {
+                            <div class="d-flex flex-column gap-3">
+                                @foreach (var pkg in Model)
+                                {
+                                    <div class="p-3 border rounded-3 bg-white shadow-2xs hover-shadow transition">
+                                        <div class="d-flex align-items-start justify-content-between">
+                                            <div>
+                                                <div class="d-flex align-items-center gap-2 mb-1">
+                                                    <h6 class="fw-bold mb-0 text-dark">@pkg.Title</h6>
+                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill font-monospace" style="font-size:0.75rem;">
+                                                        @pkg.Schema @pkg.SchemaVersion
+                                                    </span>
+                                                    @if (pkg.IsRise360)
+                                                    {
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size:0.7rem;">
+                                                            Articulate Rise 360
+                                                        </span>
+                                                    }
+                                                </div>
+                                                <p class="small text-muted mb-2 font-monospace">
+                                                    <i class="fa-regular fa-folder-open me-1"></i> ID: <strong>@pkg.Id</strong>
+                                                    <span class="mx-2">•</span>
+                                                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Launch: <code>@pkg.LaunchHref</code>
+                                                </p>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <a href="/player/@pkg.Id" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
+                                                    <i class="fa-solid fa-play me-1"></i> Test Player
+                                                </a>
+                                                <a href="/manifest/@pkg.Id" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-2" title="Inspect Manifest JSON">
+                                                    <i class="fa-solid fa-code"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-folder-open fa-3x mb-3 text-secondary"></i>
+                                <h6 class="fw-bold">No packages deployed yet</h6>
+                                <p class="small">Upload a SCORM zip file above or click the test package to begin.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Guide Card -->
+        <div class="card border-0 shadow-sm rounded-4 mt-5">
+            <div class="card-header bg-white border-bottom py-3 px-4">
+                <h5 class="fw-bold mb-0 text-navy"><i class="fa-solid fa-list-check text-success me-2"></i>SCORM Independent Testing & Architecture (.NET C#)</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <h6 class="fw-bold text-dark"><i class="fa-solid fa-1 text-primary me-2"></i>1. C# Manifest Parsing</h6>
+                            <p class="small text-muted mb-0">
+                                <code>ScormService.cs</code> extracts packages using <code>ZipFile</code>, removes XML namespaces via <code>XDocument</code>, and auto-detects <code>scormcontent/index.html</code> for Rise 360.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <h6 class="fw-bold text-dark"><i class="fa-solid fa-2 text-primary me-2"></i>2. Universal RTE Handshake</h6>
+                            <p class="small text-muted mb-0">
+                                Injects both <code>window.API</code> and <code>window.API_1484_11</code> adapters across frame hierarchies with a live side-by-side CMI debugger.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <h6 class="fw-bold text-dark"><i class="fa-solid fa-3 text-primary me-2"></i>3. Telemetry & AdityaLMS Ready</h6>
+                            <p class="small text-muted mb-0">
+                                C# endpoints handle telemetry at <code>/api/telemetry</code> and can be plugged directly into Entity Framework Core (<code>AppDbContext</code>).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('package-file-input');
+        const fileNameDisplay = document.getElementById('selected-file-name');
+
+        if (dropArea && fileInput) {
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    dropArea.classList.add('dragover');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    dropArea.classList.remove('dragover');
+                }, false);
+            });
+
+            dropArea.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length) {
+                    fileInput.files = files;
+                    showFileName(files[0].name);
+                }
+            });
+
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length) {
+                    showFileName(fileInput.files[0].name);
+                }
+            });
+
+            function showFileName(name) {
+                fileNameDisplay.textContent = 'Selected: ' + name;
+                fileNameDisplay.classList.remove('d-none');
+            }
+        }
+    </script>
+</body>
+</html>
+
